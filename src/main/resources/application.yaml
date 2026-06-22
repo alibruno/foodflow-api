@@ -1,3 +1,17 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: foodflow-api
+  datasource:
+    url: jdbc:postgresql://localhost:5432/foodflow_db
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:admin}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
