@@ -1,6 +1,6 @@
 package br.com.estudo.foodflowapi.service;
 
-import br.com.estudo.foodflowapi.database.model.ProdutoEntity;
+import br.com.estudo.foodflowapi.database.model.entity.ProdutoEntity;
 import br.com.estudo.foodflowapi.database.repository.ProdutoRepository;
 import br.com.estudo.foodflowapi.dto.ProdutoDTO;
 import br.com.estudo.foodflowapi.mapper.ProdutoMapper;

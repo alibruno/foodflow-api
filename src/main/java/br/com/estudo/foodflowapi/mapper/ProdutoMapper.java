@@ -1,6 +1,6 @@
 package br.com.estudo.foodflowapi.mapper;
 
-import br.com.estudo.foodflowapi.database.model.ProdutoEntity;
+import br.com.estudo.foodflowapi.database.model.entity.ProdutoEntity;
 import br.com.estudo.foodflowapi.dto.ProdutoDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

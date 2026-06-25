@@ -25,7 +25,7 @@ public class ProdutoController {
         produtoService.criarProduto(produtoDTO);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public List<ProdutoDTO> listarProdutos() {
         return produtoService.listarProdutos();
