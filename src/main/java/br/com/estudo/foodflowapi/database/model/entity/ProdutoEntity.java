@@ -1,4 +1,4 @@
-package br.com.estudo.foodflowapi.database.model;
+package br.com.estudo.foodflowapi.database.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
