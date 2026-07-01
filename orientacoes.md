@@ -239,57 +239,69 @@ erDiagram
 
 # 12. API REST
 
+A arquitetura da API segue os princípios do RESTful, utilizando versionamento na URI (`/v1`) e modelando as rotas estritamente baseadas nos recursos do domínio (substantivos no plural), acompanhados dos verbos HTTP semânticos.
+
 ### 12.1. Cadastros Básicos (Administração)
 
 **1. Cadastrar Produto**
 
 * **Método:** `POST`
-* **Rota:** `/api/produtos`
+* **Rota:** `/api/v1/produtos`
 * **Objetivo:** Inserir um novo prato ou bebida no cardápio.
-* **Códigos HTTP:** `201 Created`, `400 Bad Request`.
+* **Códigos HTTP:** `201 Created` (sucesso), `400 Bad Request` (erro de validação).
 
 **2. Listar Produtos**
 
 * **Método:** `GET`
-* **Rota:** `/api/produtos`
+* **Rota:** `/api/v1/produtos`
 * **Objetivo:** Retornar o cardápio disponível.
 * **Códigos HTTP:** `200 OK`.
 
 **3. Cadastrar Mesa**
 
 * **Método:** `POST`
-* **Rota:** `/api/mesas`
+* **Rota:** `/api/v1/mesas`
 * **Objetivo:** Adicionar uma nova mesa física ao salão.
 * **Códigos HTTP:** `201 Created`, `400 Bad Request`.
 
 **4. Listar Mesas**
 
 * **Método:** `GET`
-* **Rota:** `/api/mesas`
-* **Objetivo:** Retornar as mesas e seus status (DISPONIVEL ou OCUPADA).
+* **Rota:** `/api/v1/mesas`
+* **Objetivo:** Retornar as mesas e seus status atuais (`DISPONIVEL` ou `OCUPADA`).
 * **Códigos HTTP:** `200 OK`.
 
-### 12.2. Operações de Salão e Cozinha
+### 12.2. Operações de Pedido (O Core)
 
-**5. Abrir Atendimento de Mesa**
+**5. Abrir Atendimento de Mesa (Criar Pedido)**
 
 * **Método:** `POST`
-* **Rota:** `/api/mesas/{numeroMesa}/atendimentos`
-* **Objetivo:** Iniciar a comanda de uma mesa recém-ocupada.
-* **Response:** Objeto DTO do Pedido gerado.
-* **Códigos HTTP:** `201 Created`, `404 Not Found` ou `409 Conflict` (se a mesa já estiver ocupada).
+* **Rota:** `/api/v1/pedidos`
+* **Objetivo:** Criar um pedido com status `ABERTO` e alterar o status da mesa relacionada para `OCUPADA`.
+* **Request Body:**
 
-**6. Consultar Comanda Atual**
+```json
+{ 
+  "mesaId": 12 
+}
+
+```
+
+* **Response:** Objeto DTO do Pedido gerado.
+* **Códigos HTTP:** `201 Created`, `404 Not Found` (mesa não existe) ou `409 Conflict` (mesa já ocupada).
+
+**6. Consultar Comanda Atual da Mesa**
 
 * **Método:** `GET`
-* **Rota:** `/api/mesas/{numeroMesa}/atendimentos/atual`
-* **Objetivo:** Retornar os itens parciais de uma mesa antes do fechamento.
-* **Códigos HTTP:** `200 OK`, `404 Not Found` (se a mesa estiver disponível/sem pedido aberto).
+* **Rota:** `/api/v1/pedidos?mesaId={mesaId}&status=ABERTO`
+* **Objetivo:** Utilizar *Query Parameters* para buscar um pedido ativo de uma mesa específica, exibindo seus itens parciais.
+* **Códigos HTTP:** `200 OK`, `404 Not Found` (nenhum pedido aberto encontrado para esta mesa).
 
 **7. Adicionar Itens na Comanda**
 
 * **Método:** `POST`
-* **Rota:** `/api/pedidos/{pedidoId}/itens`
+* **Rota:** `/api/v1/pedidos/{pedidoId}/itens`
+* **Objetivo:** Lançar novos produtos em uma comanda específica.
 * **Request Body:**
 
 ```json
@@ -300,32 +312,13 @@ erDiagram
 
 ```
 
-* **Códigos HTTP:** `201 Created`, `400 Bad Request`, `404 Not Found`.
+* **Códigos HTTP:** `201 Created`, `400 Bad Request` (validação), `404 Not Found` (pedido ou produto inexistente).
 
-**8. Atualizar Status de Preparo (Cozinha/Garçom)**
-
-* **Método:** `PATCH`
-* **Rota:** `/api/itens/{itemId}/status`
-* **Request Body:**
-
-```json
-{ "novoStatus": "PREPARANDO" }
-
-```
-
-* **Códigos HTTP:** `200 OK` ou `422 Unprocessable Entity` (se a transição não obedecer à regra sequencial).
-
-**9. Remover Item da Comanda**
-
-* **Método:** `DELETE`
-* **Rota:** `/api/itens/{itemId}`
-* **Objetivo:** Cancelar o pedido de um prato.
-* **Códigos HTTP:** `204 No Content`, `404 Not Found` ou `409 Conflict` (se a cozinha já tiver iniciado o preparo).
-
-**10. Fechar Conta (Extrato Final)**
+**8. Fechar Conta (Extrato Final)**
 
 * **Método:** `POST`
-* **Rota:** `/api/mesas/{numeroMesa}/fechamento`
+* **Rota:** `/api/v1/pedidos/{pedidoId}/fechamento`
+* **Objetivo:** Encerrar o pedido (alterando para `PAGO`), calcular taxas de serviço e liberar a mesa para `DISPONIVEL`.
 * **Response (DTO Consolidado):**
 
 ```json
@@ -343,6 +336,29 @@ erDiagram
 ```
 
 * **Códigos HTTP:** `200 OK`, `404 Not Found` ou `422 Unprocessable Entity` (se houver itens pendentes de entrega).
+
+### 12.3. Operações de Itens (A Cozinha)
+
+**9. Atualizar Status de Preparo**
+
+* **Método:** `PATCH`
+* **Rota:** `/api/v1/itens/{itemId}/status`
+* **Objetivo:** Avançar a máquina de estados do item individual (ex: `CRIADO` ➔ `PREPARANDO`).
+* **Request Body:**
+
+```json
+{ "novoStatus": "PREPARANDO" }
+
+```
+
+* **Códigos HTTP:** `200 OK` ou `422 Unprocessable Entity` (transição inválida segundo as regras de estado).
+
+**10. Remover Item da Comanda**
+
+* **Método:** `DELETE`
+* **Rota:** `/api/v1/itens/{itemId}`
+* **Objetivo:** Cancelar o pedido de um prato específico isoladamente.
+* **Códigos HTTP:** `204 No Content` (removido com sucesso), `404 Not Found` ou `409 Conflict` (se a cozinha já iniciou o preparo).
 
 # 13. Arquitetura do projeto
 
