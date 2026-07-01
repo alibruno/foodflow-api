@@ -25,12 +25,14 @@ public class MesaEntity {
     @Column(nullable = false)
     private Integer capacidade;
 
-    // Atribuir diretamente age como se fosse um valor padrão
+    @Builder.Default // Obriga o Builder a respeitar este valor inicial
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusMesa status = StatusMesa.DISPONIVEL;
+    // Atribuir diretamente age como se fosse um valor padrão
 
     //O mappedBy aponta para o nome do atributo "mesa" lá na classe PedidoEntity.
+    @Builder.Default
     @OneToMany(mappedBy = "mesa", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<PedidoEntity> pedidos = new ArrayList<>();
     // Boa prática: sempre inicialize coleções vazias.

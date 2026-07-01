@@ -18,14 +18,14 @@ public class ProdutoEntity {
     private Long id;
 
     @Column(nullable = false)
-    String nome;
+    private String nome;
 
     @Column(nullable = false)
-    String descricao;
+    private String descricao;
 
     @Column(nullable = false, name = "preco_atual")
-    BigDecimal precoAtual;
+    private BigDecimal precoAtual;
 
     @Column(nullable = false)
-    String categoria;
+    private String categoria;
 }
