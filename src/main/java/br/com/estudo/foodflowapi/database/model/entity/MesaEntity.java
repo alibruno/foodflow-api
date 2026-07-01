@@ -2,16 +2,18 @@ package br.com.estudo.foodflowapi.database.model.entity;
 
 import br.com.estudo.foodflowapi.database.model.enums.StatusMesa;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
+@Table(name = "mesas")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
 public class MesaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +25,13 @@ public class MesaEntity {
     @Column(nullable = false)
     private Integer capacidade;
 
+    // Atribuir diretamente age como se fosse um valor padrão
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusMesa status;
+    private StatusMesa status = StatusMesa.DISPONIVEL;
+
+    //O mappedBy aponta para o nome do atributo "mesa" lá na classe PedidoEntity.
+    @OneToMany(mappedBy = "mesa", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<PedidoEntity> pedidos = new ArrayList<>();
+    // Boa prática: sempre inicialize coleções vazias.
 }
